@@ -1,7 +1,5 @@
 const { readFileSync } = require('fs');
 
-// As funções agora estão soltas no escopo global do arquivo e recebem os parâmetros necessários
-
 function formatarMoeda(valor) {
   return new Intl.NumberFormat("pt-BR",
     { style: "currency", currency: "BRL",
@@ -62,7 +60,6 @@ function calcularTotalCreditos(pecas, apresentacoes) {
 function gerarFaturaStr(fatura, pecas) {
   let faturaStr = `Fatura ${fatura.cliente}\n`;
   for (let apre of fatura.apresentacoes) {
-      // Repare que agora passamos 'pecas' como argumento extra
       faturaStr += `  ${getPeca(pecas, apre).nome}: ${formatarMoeda(calcularTotalApresentacao(pecas, apre))} (${apre.audiencia} assentos)\n`;
   }
   faturaStr += `Valor total: ${formatarMoeda(calcularTotalFatura(pecas, fatura.apresentacoes))}\n`;
@@ -70,7 +67,26 @@ function gerarFaturaStr(fatura, pecas) {
   return faturaStr;
 }
 
+// NOVA FUNÇÃO: Fatura em HTML
+function gerarFaturaHTML(fatura, pecas) {
+  let faturaHTML = `<html>\n<p> Fatura ${fatura.cliente} </p>\n<ul>\n`;
+  for (let apre of fatura.apresentacoes) {
+      faturaHTML += `<li>  ${getPeca(pecas, apre).nome}: ${formatarMoeda(calcularTotalApresentacao(pecas, apre))} (${apre.audiencia} assentos) </li>\n`;
+  }
+  faturaHTML += `</ul>\n`;
+  faturaHTML += `<p> Valor total: ${formatarMoeda(calcularTotalFatura(pecas, fatura.apresentacoes))} </p>\n`;
+  faturaHTML += `<p> Créditos acumulados: ${calcularTotalCreditos(pecas, fatura.apresentacoes)} </p>\n`;
+  faturaHTML += `</html>\n`;
+  return faturaHTML;
+}
+
 const faturas = JSON.parse(readFileSync('./faturas.json'));
 const pecas = JSON.parse(readFileSync('./pecas.json'));
+
+// Chamando e exibindo as duas faturas
 const faturaStr = gerarFaturaStr(faturas, pecas);
+const faturaHTML = gerarFaturaHTML(faturas, pecas);
+
 console.log(faturaStr);
+console.log("----------------------------------------"); // Apenas um separador para facilitar a leitura no terminal
+console.log(faturaHTML);
